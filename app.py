@@ -16,7 +16,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🏠 Household Blood-Lead Level Calculation Tool")
+st.title("🏠 Household Blood-Lead Level Risk Calculation Tool")
 st.write(
     "Enter the information below to generate an example model assessment."
 )
