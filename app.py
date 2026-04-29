@@ -23,6 +23,53 @@ st.write(
     "Enter the information below to generate an example model assessment."
 )
 
+st.subheader("Child Information")
+
+child_present = st.radio(
+    "Did a child under age 6 live in the home between 2002–2019?",
+    options=[False, True],
+    format_func=lambda x: "Yes" if x else "No"
+)
+
+# Defaults
+test_year = 2020
+child_age_months = 14
+specimen_type = 0  # C = capillary, V = venous
+
+if child_present:
+
+    blood_test = st.radio(
+        "Did the child receive a blood lead test during those years?",
+        options=[False, True],
+        format_func=lambda x: "Yes" if x else "No"
+    )
+
+    # Year selection (always allow)
+    test_year = st.selectbox(
+        "Year of residence / test",
+        list(range(2002, 2021)),
+        index=len(list(range(2002, 2021))) - 1  # default 2020
+    )
+
+    child_age_months = st.selectbox(
+        "Child age in months during that year",
+        list(range(0, 73)),
+        index=14
+    )
+
+    if blood_test:
+        specimen_type = st.radio(
+            "Blood specimen type",
+            options=["Capillary", "Venous"],
+            index=0
+        )
+
+        specimen_type = "C" if specimen_type == "Capillary" else "V"
+        if specimen_type == "C":
+            specimen_type = 0
+        else:
+            specimen_type = 1
+
 st.divider()
 
 # -------------------------------------------------
@@ -44,6 +91,16 @@ year_built = st.selectbox(
         "2010 or later"
     ]
 )
+if year_built == "Before 1950":
+    year_built = 1940
+if year_built == "1950–1969":
+    year_built = 1960
+if year_built == "1970–1989":
+    year_built = 1980
+if year_built == "1990–2009":
+    year_built = 2000
+if year_built == "2010 or later":
+    year_built = 2015
 
 home_value = st.selectbox(
     "Estimated home value",
@@ -90,7 +147,7 @@ if home_value == "$200k+":
     home_value = 300000.0
 
 piped_water = st.radio(
-    "Does the home have piped (municipal) water?",
+    "Does the home have community (city/county) water?",
     options=[True, False],
     format_func=lambda x: "Yes" if x else "No"
 )
@@ -109,13 +166,14 @@ if st.button("Run Assessment", type="primary"):
 
     # 2. Get coordinates
     lat, lon = get_coordinates(street, city, state, zip_code)
+    #print(lat,lon)
 
     if lat is None:
         st.error("Address could not be located.")
         st.stop()
 
     # 3. Get census block group
-    county,tract,block_group = get_block_group(lat, lon)
+    county,tract,block_group = get_block_group(lat, lon, test_year)
 
     if block_group is None:
         st.error("Could not determine census block group.")
@@ -131,27 +189,45 @@ if st.button("Run Assessment", type="primary"):
     st.map({"lat": [lat], "lon": [lon]})
 
     # 5. Retrieve census variables (example placeholder)
-    county_median_income,county_median_home_value,cbg_family_poverty,cbg_prop_black = get_demographic_data(block_group)
+    # also need to get CBG income, default home value, default year built
+    county_median_income,county_median_home_value,cbg_family_poverty,cbg_prop_black = get_demographic_data(block_group, test_year)
 
     # 6. Build model input
     model_inputs = {
-        "YEAR":year_built,
-        "age_months_continuous":14,
-        "SPECTYPE":"C",
+        "YEAR":test_year,
+        "age_months_continuous":child_age_months,
+        "SPECTYPEV":specimen_type,
         "TRI_SOURCES5k":2,
         "NEI_SOURCES5k":3,
         "med_income_pct_of_median":income/county_median_income,
         "PCT_FAMILYPOVERTY":cbg_family_poverty,
         "proportion_black":cbg_prop_black,
         "home_value_pct_of_median":home_value/county_median_home_value,
-        "YEAR_BUILT":year_built,
-        "PIPED_WATER":piped_water
+        "YEAR_BUILT_2":int(year_built),
+        "PIPED_WATER1":piped_water
     }
+    #print([type(model_inputs[k]) for k in model_inputs.keys()])
+    #print(model_inputs)
+    
+    default_inputs = {
+        "YEAR":test_year,
+        "age_months_continuous":14,
+        "SPECTYPEV":0,
+        "TRI_SOURCES5k":2,
+        "NEI_SOURCES5k":3,
+        "med_income_pct_of_median":county_median_income,
+        "PCT_FAMILYPOVERTY":cbg_family_poverty, #update with county
+        "proportion_black":cbg_prop_black, #update with county
+        "home_value_pct_of_median":county_median_home_value,
+        "YEAR_BUILT_2":int(year_built), #update with county
+        "PIPED_WATER1":piped_water
+    }
+    #print([type(default_inputs[k]) for k in default_inputs.keys()])
 
     # 7. Run model
-    result = run_model(model_inputs)
+    result = run_model(model_inputs, default_inputs)
 
     # 8. Display results
     st.subheader("Assessment Result")
-    st.write(result)
+    st.write(result["summary"])
 
