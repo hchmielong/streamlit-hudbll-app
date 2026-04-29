@@ -184,3 +184,33 @@ result = predict(row)
 print("Predicted class:", result)
 probs = predict_proba(row)
 print("Predicted probabilities:", probs)
+
+import xgboost as xgb
+import pandas as pd
+import os
+
+# -----------------------------
+# Load model once (on import)
+# -----------------------------
+try:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+except:
+    BASE_DIR = os.getcwd() + '\\Documents\\streamlit-hudbll-app\\'
+MODEL_PATH = os.path.join(BASE_DIR, "xgb_model_sv2.json")
+
+
+
+model = xgb.Booster()
+model.load_model(MODEL_PATH)
+
+
+# -----------------------------
+# IMPORTANT: define feature order
+# MUST match training data EXACTLY
+# -----------------------------
+FEATURE_COLUMNS = [
+    "county_median_income",
+    "county_median_home_value",
+    "bg_prop_black",
+    "bg_family_poverty"
+]
