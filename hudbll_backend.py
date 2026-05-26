@@ -66,7 +66,7 @@ def run_model(model_inputs, default_inputs):
         "default_probability": default_probability,
         "summary": (
             f"Based on the provided information, the estimated risk probability "
-            f"for the home is {risk_probability} (compared to {default_probability} for the surrounding county/CBG)."
+            f"for the home is {risk_probability} (compared to {default_probability} for the surrounding county)."
         )
     }
 

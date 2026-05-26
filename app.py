@@ -103,7 +103,7 @@ if year_built == "2010 or later":
     year_built = 2015
 
 home_value = st.selectbox(
-    "Estimated home value",
+    f"Estimated home value in the year {test_year}",
     [
         "< $150k",
         "$150k–$299k",
@@ -125,7 +125,7 @@ if home_value == "$750k+":
     home_value = 900000.0
 
 income = st.selectbox(
-    "Annual household income",
+    f"Annual household income in the year {test_year}",
     [
         "< $35k",
         "$35k–$74k",
@@ -190,7 +190,7 @@ if st.button("Run Assessment", type="primary"):
 
     # 5. Retrieve census variables (example placeholder)
     # also need to get CBG income, default home value, default year built
-    county_median_income,county_median_home_value,cbg_family_poverty,cbg_prop_black = get_demographic_data(block_group, test_year)
+    county_median_income,county_median_home_value,county_year_built,county_family_poverty,county_prop_black,cbg_family_poverty,cbg_prop_black = get_demographic_data(block_group, test_year)
 
     # 6. Build model input
     model_inputs = {
@@ -216,10 +216,10 @@ if st.button("Run Assessment", type="primary"):
         "TRI_SOURCES5k":2,
         "NEI_SOURCES5k":3,
         "med_income_pct_of_median":county_median_income,
-        "PCT_FAMILYPOVERTY":cbg_family_poverty, #update with county
-        "proportion_black":cbg_prop_black, #update with county
+        "PCT_FAMILYPOVERTY":county_family_poverty, 
+        "proportion_black":county_prop_black, 
         "home_value_pct_of_median":county_median_home_value,
-        "YEAR_BUILT_2":int(year_built), #update with county
+        "YEAR_BUILT_2":county_year_built, 
         "PIPED_WATER1":piped_water
     }
     #print([type(default_inputs[k]) for k in default_inputs.keys()])
