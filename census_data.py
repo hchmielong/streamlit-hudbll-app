@@ -5,6 +5,9 @@ Created on Wed Mar 11 15:33:18 2026
 @author: Hana
 """
 import requests
+import streamlit as st
+
+CENSUS_API_KEY = st.secrets["CENSUS_API_KEY"]
 
 def get_closest_acs_year(year):
     # ACS 5-year datasets availability
@@ -36,8 +39,9 @@ def get_census_data(block_group, year):
     county_url = (
         f"{base_url}?get={county_vars}"
         f"&for=county:{county}&in=state:{state}"
+        f"&key={CENSUS_API_KEY}"
     )
-
+    #print(county_url)
     county_data = requests.get(county_url).json()
 
     county_median_income = float(county_data[1][0])
@@ -53,8 +57,9 @@ def get_census_data(block_group, year):
         f"{base_url}?get={bg_vars}"
         f"&for=block%20group:{bg}"
         f"&in=state:{state}%20county:{county}%20tract:{tract}"
+        f"&key={CENSUS_API_KEY}"
     )
-    print(bg_url)
+    #print(bg_url)
     bg_data = requests.get(bg_url).json()
 
     total_pop = float(bg_data[1][0])
