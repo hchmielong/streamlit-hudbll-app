@@ -8,6 +8,7 @@ Created on Wed Feb  4 09:41:01 2026
 import xgboost as xgb
 import pandas as pd
 import os
+import numpy as np
 
 def run_model(model_inputs, default_inputs):
     """
@@ -60,13 +61,24 @@ def run_model(model_inputs, default_inputs):
 
     # Predict
     default_probability = 1-model.predict(ddmatrix)
-
+    
+    # Convert probabilities to percentages for display
+    risk_probability = float(np.asarray(risk_probability).item())
+    default_probability = float(np.asarray(default_probability).item())
+    risk_pct = risk_probability * 100
+    default_pct = default_probability * 100
+    
     return {
         "risk_probability": risk_probability,
         "default_probability": default_probability,
         "summary": (
-            f"Based on the provided information, the estimated risk probability "
-            f"for the home is {risk_probability} (compared to {default_probability} for the surrounding county)."
+            f"The estimated probability (chance) that a child living in the "
+            f"home will have a blood lead concentration above 3.5 micrograms/dL "
+            f"is {risk_pct:.1f}% (compared to {default_pct:.1f}% for the "
+            f"surrounding county). The maximum probability is 100%. When blood "
+            f"lead exceeds 3.5 micrograms/dL, the U.S. Centers for Disease "
+            f"Control and Prevention recommends taking action to remove or "
+            f"control lead exposure sources."
         )
     }
 

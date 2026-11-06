@@ -143,8 +143,8 @@ if income == "$75k–$124k":
     income = 100000.0
 if income == "$125k–$199k":
     income = 165000.0
-if home_value == "$200k+":
-    home_value = 300000.0
+if income == "$200k+":
+    income = 300000.0
 
 piped_water = st.radio(
     "Does the home have community (city/county) water?",
@@ -215,10 +215,10 @@ if st.button("Run Assessment", type="primary"):
         "SPECTYPEV":0,
         "TRI_SOURCES5k":2,
         "NEI_SOURCES5k":3,
-        "med_income_pct_of_median":county_median_income,
+        "med_income_pct_of_median":1.0,
         "PCT_FAMILYPOVERTY":county_family_poverty, 
         "proportion_black":county_prop_black, 
-        "home_value_pct_of_median":county_median_home_value,
+        "home_value_pct_of_median":1.0,
         "YEAR_BUILT_2":county_year_built, 
         "PIPED_WATER1":piped_water
     }
